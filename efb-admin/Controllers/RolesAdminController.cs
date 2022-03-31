@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Security;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 
@@ -10,6 +11,8 @@ using efb_admin.Models;
 
 namespace efb_admin.Controllers
 {
+
+    // [Authorize(Roles = "SuperAdmin")]
     public class RolesAdminController : Controller
     {
         private ApplicationDbContext context = new ApplicationDbContext();
@@ -24,7 +27,7 @@ namespace efb_admin.Controllers
         public ActionResult ListUsers()
         {
             var users = context.Users.OrderBy(u => u.UserName).ToList();
-            return View(User);
+            return View(users);
         }
 
         // GET:
@@ -100,18 +103,21 @@ namespace efb_admin.Controllers
             var userManager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(context));
             var userId = updateRoles.UserId;
 
-            foreach (var item in updateRoles.UserRoles) 
+
+
+            foreach (var item in updateRoles.UserRoles)
             {
+                var _role = context.Roles.FirstOrDefault(r => r.Id == item.Id);
                 if (item.isChecked)
                 {
                     if (!userManager.IsInRole(userId, item.Id))
                     {
-                        userManager.AddToRole(userId, item.Name);
+                        userManager.AddToRole(userId, _role.Name);
                     }
                 }
-                else if (userManager.IsInRole(userId, item.Name))
+                else if (userManager.IsInRole(userId, _role.Name))
                 {
-                    userManager.RemoveFromRoles(userId, item.Name);
+                    userManager.RemoveFromRole(userId, _role.Name);
                 }
             }
 
